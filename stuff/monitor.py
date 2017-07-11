@@ -9,7 +9,7 @@ import sys
 import tarfile
 import urllib2
 
-URL = "https://github.com/cuckoosandbox/community/archive/%s.tar.gz"
+URL = "https://github.com/ViPig/community/archive/%s.tar.gz"
 
 if __name__ == "__main__":
     if not os.path.lexists("cuckoo/data/monitor/latest"):
