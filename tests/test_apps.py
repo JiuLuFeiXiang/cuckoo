@@ -677,12 +677,16 @@ class TestMigrateCWD(object):
         cuckoo_create()
         shutil.rmtree(cwd("yara", "scripts"))
         shutil.rmtree(cwd("yara", "shellcode"))
+        shutil.rmtree(cwd("stuff"))
+        open(cwd("yara", "index_binaries.yar"), "wb").write("hello")
         migrate_cwd()
         # TODO Move this to its own 2.0.2 -> 2.0.3 migration handler.
         assert os.path.exists(cwd("yara", "scripts", ".gitignore"))
-        assert os.path.exists(cwd("yara", "index_scripts.yar"))
         assert os.path.exists(cwd("yara", "shellcode", ".gitignore"))
-        assert os.path.exists(cwd("yara", "index_shellcode.yar"))
+        # TODO Move this to its own 2.0.3 -> 2.0.4 migration handler.
+        assert os.path.exists(cwd("stuff"))
+        assert os.path.exists(cwd("yara", "dumpmem"))
+        assert not os.path.exists(cwd("yara", "index_binaries.yar"))
 
     def test_using_community(self):
         def h(filepath):
@@ -695,7 +699,7 @@ class TestMigrateCWD(object):
         shutil.copy("tests/files/sig-init-old.py", filepath)
         assert h(filepath) == "033e19e4fea1989680f4af19b904448347dd9589"
         migrate_cwd()
-        assert h(filepath) == "5966e9db6bcd3adcd70998f4c51072c7f81b4564"
+        assert h(filepath) == "eaffef3b08fd1069ba2d3c977015b598fa150941"
 
     def test_current_community(self):
         set_cwd(tempfile.mktemp())
@@ -751,6 +755,7 @@ class TestCommunitySuggestion(object):
         sys.modules.pop("signatures.cross", None)
         sys.modules.pop("signatures.darwin", None)
         sys.modules.pop("signatures.extractor", None)
+        sys.modules.pop("signatures.linux", None)
         sys.modules.pop("signatures.network", None)
         sys.modules.pop("signatures.windows", None)
         cuckoo_create()

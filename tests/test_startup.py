@@ -6,6 +6,7 @@ import mock
 import os
 import pytest
 import responses
+import shutil
 import tempfile
 
 from cuckoo.common.abstracts import (
@@ -60,10 +61,11 @@ def test_init_tasks():
     assert Database().view_task(4).status == "reported"
     assert Database().view_task(5) is None
 
+@mock.patch("cuckoo.core.startup.RunSignatures")
 @mock.patch("cuckoo.reporting.elasticsearch.elastic")
 @mock.patch("cuckoo.reporting.mongodb.mongo")
 @mock.patch("cuckoo.core.startup.log")
-def test_init_modules(p, q, r):
+def test_init_modules(p, q, r, s):
     set_cwd(tempfile.mkdtemp())
     cuckoo_create()
     load_signatures()
@@ -77,6 +79,7 @@ def test_init_modules(p, q, r):
     r.index_time_pattern = "yearly"
 
     init_modules()
+    s.init_once.assert_called_once()
 
     logs = "\n".join(logs)
     assert "KVM" in logs
@@ -614,3 +617,28 @@ class TestYaraIntegration(object):
         os.symlink(cwd("yara", "binaries"), cwd("yara", "memory", "bins"))
         init_yara()
         assert len(list(File.yara_rules["memory"])) == 5
+
+    def test_stuff(self):
+        open(cwd("yara", "memory", "hello.yara"), "wb").write("""
+            rule A {
+                condition:
+                    1
+            }
+        """)
+        init_yara()
+
+        # $CWD/stuff/index_memory.yar
+        assert os.path.exists(cwd("stuff", "index_memory.yar"))
+        buf = open(cwd("stuff", "index_memory.yar"), "rb").read()
+        assert 'include "%s"' % cwd("yara", "memory", "hello.yara") in buf
+
+        # $CWD/stuff/dumpmem.yarac
+        assert os.path.exists(cwd("stuff", "dumpmem.yarac"))
+        assert os.path.getsize(cwd("stuff", "dumpmem.yarac")) > 2048
+
+    def test_missing_category(self):
+        File.yara_rules = {}
+        shutil.rmtree(cwd("yara", "binaries"))
+        init_yara()
+        assert len(File.yara_rules) == 6
+        assert not list(File.yara_rules["binaries"])

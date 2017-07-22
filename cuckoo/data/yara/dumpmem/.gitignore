@@ -1,0 +1,40 @@
+# Python byte code
+*.pyc
+
+# Certificates
+*.pem
+*.cert
+
+# .map files (css/js debugging)
+*.map
+
+# OS generated files
+.DS_Store*
+.AppleDouble
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Development files
+docs/book/_build/
+.idea/
+.project
+.pydevproject
+
+# Python package stuff
+.eggs/
+.cache
+Cuckoo.egg-info/
+venv
+lib/python2.7/
+build/
+dist/
+local/
+
+# Cuckoo package stuff
+cuckoo/data-private/.cwd
+
+# Frontend compilation services
+node_modules/
+bower_components/
+.sass-cache/

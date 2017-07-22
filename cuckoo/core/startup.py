@@ -23,6 +23,7 @@ from cuckoo.core.database import (
 )
 from cuckoo.core.feedback import CuckooFeedbackObject
 from cuckoo.core.log import init_logger
+from cuckoo.core.plugins import RunSignatures
 from cuckoo.core.rooter import rooter
 from cuckoo.misc import cwd, version
 
@@ -194,14 +195,19 @@ def init_modules():
             else:
                 log.debug("\t |-- %s", entry.__name__)
 
+    # Initialize the RunSignatures module with all available Signatures.
+    RunSignatures.init_once()
+
 def init_yara():
     """Initialize & load/compile Yara rules."""
+    categories = (
+        "binaries", "urls", "memory", "scripts", "shellcode", "dumpmem",
+    )
     log.debug("Initializing Yara...")
-    for category in ("binaries", "urls", "memory", "scripts", "shellcode"):
+    for category in categories:
         dirpath = cwd("yara", category)
         if not os.path.exists(dirpath):
             log.warning("Missing Yara directory: %s?", dirpath)
-            continue
 
         rules, indexed = {}, []
         for dirpath, dirnames, filenames in os.walk(dirpath, followlinks=True):
@@ -234,12 +240,23 @@ def init_yara():
                 "There was a syntax error in one or more Yara rules: %s" % e
             )
 
+        # The memory.py processing module requires a yara file with all of its
+        # rules embedded in it, so create this file to remain compatible.
+        if category == "memory":
+            f = open(cwd("stuff", "index_memory.yar"), "wb")
+            for filename in indexed:
+                f.write('include "%s"\n' % cwd("yara", "memory", filename))
+
         indexed = sorted(indexed)
         for entry in indexed:
             if (category, entry) == indexed[-1]:
                 log.debug("\t `-- %s %s", category, entry)
             else:
                 log.debug("\t |-- %s %s", category, entry)
+
+    # Store the compiled Yara rules for the "dumpmem" category in
+    # $CWD/stuff/ so that we may pass it along to zer0m0n during analysis.
+    File.yara_rules["dumpmem"].save(cwd("stuff", "dumpmem.yarac"))
 
 def init_binaries():
     """Inform the user about the need to periodically look for new analyzer
