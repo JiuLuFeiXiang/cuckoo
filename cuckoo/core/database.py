@@ -25,6 +25,8 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import sessionmaker, relationship, joinedload
 
+from cuckoo.common.mongo import mongo
+
 Base = declarative_base()
 
 log = logging.getLogger(__name__)
@@ -443,6 +445,11 @@ class Database(object):
         if create:
             self._create_tables()
 
+        if mongo.init():
+            mongo.connect()
+        else:
+            log.warning("[Mongo] Unable to initialize connection")
+    
     def _create_tables(self):
         """Creates all the database tables etc."""
         try:
@@ -611,6 +618,7 @@ class Database(object):
         @param status: status string
         @return: operation status
         """
+
         session = self.Session()
         try:
             row = session.query(Task).get(task_id)
@@ -630,6 +638,17 @@ class Database(object):
             session.rollback()
         finally:
             session.close()
+
+        log.warning("a"*100)
+
+        try:
+            mongo.db.tasks.find_one_and_update(
+                {"task_id": task_id},
+                {"$set": {"status": status}}
+            ) # todo: duplicate case
+        except Exception as e:
+            log.warning("[Mongo] Unable to update status: %s", e)
+
 
     @classlock
     def set_route(self, task_id, route):
@@ -977,6 +996,7 @@ class Database(object):
         @param clock: virtual machine clock time
         @return: cursor or None.
         """
+        
         # TODO: parameter `package` is not mentioned in the function docstring
         session = self.Session()
 
@@ -1068,6 +1088,11 @@ class Database(object):
             return None
         finally:
             session.close()
+
+        try:
+            mongo.db.tasks.insert({"task_id": task_id, "status": "pending"})
+        except Exception as e:
+            log.warning("[Mongo] Unable to add new task: %s", e)
 
         return task_id
 
