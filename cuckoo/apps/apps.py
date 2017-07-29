@@ -36,7 +36,7 @@ from cuckoo.misc import cwd, mkdir
 
 log = logging.getLogger(__name__)
 
-URL = "https://github.com/cuckoosandbox/community/archive/%s.tar.gz"
+URL = "https://github.com/ViPig/community/archive/%s.tar.gz"
 
 def fetch_community(branch="master", force=False, filepath=None):
     if filepath:
