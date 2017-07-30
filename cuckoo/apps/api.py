@@ -392,15 +392,24 @@ def task_screenshots(task_id=0, screenshot=None):
         return json_error(404, "Task not found")
 
     if screenshot:
-        screenshot_name = "%s.jpg" % screenshot
-        screenshot_path = os.path.join(folder_path, screenshot_name)
-        if not os.path.exists(screenshot_path):
-            return json_error(404, "Screenshot not found!")
+        if screenshot == "video":
+            video_path  = os.path.join(folder_path, "test.avi")
+            if not os.path.exists(video_path):
+                return json_error(404, "Video not found!")
 
-        # TODO: Add content disposition.
-        response = make_response(open(screenshot_path, "rb").read())
-        response.headers["Content-Type"] = "image/jpeg"
-        return response
+            response = make_response(open(video_path, "rb").read())
+            response.headers["Content-Type"] = "video/x-msvideo"
+            return response
+        else:    
+            screenshot_name = "%s.jpg" % screenshot
+            screenshot_path = os.path.join(folder_path, screenshot_name)
+            if not os.path.exists(screenshot_path):
+                return json_error(404, "Screenshot not found!")
+
+            # TODO: Add content disposition.
+            response = make_response(open(screenshot_path, "rb").read())
+            response.headers["Content-Type"] = "image/jpeg"
+            return response
     else:
         zip_data = io.BytesIO()
         with zipfile.ZipFile(zip_data, "w", zipfile.ZIP_STORED) as zip_file:
