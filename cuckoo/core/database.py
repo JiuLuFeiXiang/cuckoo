@@ -1098,6 +1098,9 @@ class Database(object):
             log.debug(obj)
             mongo_init["category"] = "file"
 
+            file_name = os.path.split(obj.file_path)[1]
+            file_id = ''.join(file_name.split('.')[:-1])
+
             mongo_init["file"] = {
                 "md5": obj.get_md5(),
                 "crc32": obj.get_crc32(),
@@ -1108,6 +1111,8 @@ class Database(object):
                 "type": obj.get_type(),
                 "ssdeep": obj.get_ssdeep(),
                 "path": obj.file_path,
+                "id": file_id,
+                "name": file_name,
             }
 
         try:
