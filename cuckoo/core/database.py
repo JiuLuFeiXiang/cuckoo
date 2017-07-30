@@ -639,8 +639,6 @@ class Database(object):
         finally:
             session.close()
 
-        log.warning("a"*100)
-
         try:
             mongo.db.tasks.find_one_and_update(
                 {"task_id": task_id},
@@ -1089,8 +1087,31 @@ class Database(object):
         finally:
             session.close()
 
+        mongo_init = {
+            "category": None,
+            "task_id": task_id,
+            "status": "pending",
+        }
+
+        if isinstance(obj, File):
+            log.debug("DEBUG obj")
+            log.debug(obj)
+            mongo_init["category"] = "file"
+
+            mongo_init["file"] = {
+                "md5": obj.get_md5(),
+                "crc32": obj.get_crc32(),
+                "sha1": obj.get_sha1(),
+                "sha256": obj.get_sha256(),
+                "sha512": obj.get_sha512(),
+                "size": obj.get_size(),
+                "type": obj.get_type(),
+                "ssdeep": obj.get_ssdeep(),
+                "path": obj.file_path,
+            }
+
         try:
-            mongo.db.tasks.insert({"task_id": task_id, "status": "pending"})
+            mongo.db.tasks.insert(mongo_init)
         except Exception as e:
             log.warning("[Mongo] Unable to add new task: %s", e)
 
