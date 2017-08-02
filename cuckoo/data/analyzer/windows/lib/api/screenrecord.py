@@ -1,8 +1,11 @@
 import Tkinter as tkinter
 import subprocess
+import logging
+
+log = logging.getLogger(__name__)
 
 class ScreenRecord:
-    def __init__(self):
+    def __init__(self, output_path, filename):
         self.vcodecs = {}
         self.vcodecs["h264_lossless"] = ["-c:v", "libx264", "-g", "15", "-crf", "0", "-pix_fmt", "yuv444p"]
         self.vcodecs["h264"] = ["-c:v", "libx264", "-vprofile", "baseline", "-g", "15", "-crf", "1", "-pix_fmt", "yuv420p"]
@@ -14,8 +17,8 @@ class ScreenRecord:
         self.vcodecs["theora"] = ["-c:v", "libtheora", "-g", "15", "-b:v", "40000k"]
         #self.vcodecs["dirac"] = ["-c:v", "libschroedinger", "-g", "15", "-b:v", "40000k"]
 
-        self.filename = "test.avi"
-        self.output_path = "C:\\Users\\Administrator\\Desktop"
+        self.filename = filename
+        self.output_path = output_path
         self.output = self.output_path + "\\" + self.filename
 
         self.proc = None
@@ -28,8 +31,14 @@ class ScreenRecord:
         return (width, height)
 
     def stop(self):
-        self.proc.kill()
-
+        try:
+            self.proc.kill()
+        except OSError as e:
+            log.debug("Error stop recording screen: %s", e)
+        except Exception as e:
+            log.exception("Unable to stop recording screen with pid %d: %s",
+                              self.proc.pid, e)
+    
     def record(self):
         resl = self.get_desktop_resolution()
         width = resl[0]

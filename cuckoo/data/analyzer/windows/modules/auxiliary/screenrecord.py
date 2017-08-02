@@ -1,6 +1,7 @@
 import logging
 import threading
 import time
+import os
 
 from lib.api.screenrecord import ScreenRecord
 from lib.common.abstracts import Auxiliary
@@ -14,13 +15,17 @@ class ScreenRecorder(threading.Thread, Auxiliary):
     def __init__(self, options={}, analyzer=None):
         threading.Thread.__init__(self)
         Auxiliary.__init__(self, options, analyzer)
-        self.src = ScreenRecord()
+        self.src = ScreenRecord(os.environ["TEMP"], "test.mp4")
 
     def stop(self):
         """Stop screenrecording"""
+        # Stop the video
+        self.src.stop()
+
+        # TODO: taking video based on events
         with open(self.src.output, "rb") as f:
             nf = NetlogFile()
-            nf.init("shots/" + self.src.filename)
+            nf.init("video/" + self.src.filename)
             nf.sock.sendall(f.read())
             nf.close()
 
