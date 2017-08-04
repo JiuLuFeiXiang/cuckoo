@@ -464,9 +464,13 @@ def pcapstream(request, task_id, conntuple):
         else:
             connlist = conndata["network"]["tcp"]
 
+        f = open('/root/log.txt', 'a+b')
+        f.write('connlist' + str(connlist) + '\n')
         conns = filter(lambda i: (i["sport"], i["dport"], i["src"], i["dst"]) == (sport, dport, src, dst), connlist)
+        f.write('conns = filter(lambda i: (i["sport"], i["dport"], i["src"], i["dst"]) == (sport, dport, src, dst), connlist) ' + str(conns) + '\n')
         stream = conns[0]
         offset = stream["offset"]
+        f.write('offset = stream["offset"] ' + str(offset) + '\n\n\n\n')
     except:
         return view_error(request, "Could not find the requested stream")
 
