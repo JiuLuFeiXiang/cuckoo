@@ -50,12 +50,12 @@ class ScreenRecord:
             '-framerate', str(15),
             '-offset_x', str(0),
             '-offset_y', str(0),
-            '-video_size', "%dx%d" %(width, height),
+            # '-video_size', "%dx%d" %(width, height),
             '-i', 'desktop',
        
         ]
 
-        args += self.vcodecs["h264"]
+        # args += self.vcodecs["h264"]
         args += [self.output]
 
         self.proc = subprocess.Popen(args, shell=False)
