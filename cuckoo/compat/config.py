@@ -396,7 +396,7 @@ def _120_20c1(c):
         "files_dir": "files",
         "socket": None,
     }
-    c["processing"]["virustotal"]["scan"] = False
+    c["processing"]["virustotal"]["scan"] = True
     c["qemu"] = {
         "qemu": {
             "path": "/usr/bin/qemu-system-x86_64",
@@ -523,7 +523,7 @@ def _20c1_20c2(c):
         "username": "cuckoo",
         "url": None,
         "myurl": None,
-        "show-virustotal": False,
+        "show-virustotal": True,
         "show-signatures": False,
         "show-urls": False,
         "hash-filename": False,
@@ -565,8 +565,8 @@ def _20c2_200(c):
     )
     c["processing"]["procmemory"]["extract_dll"] = False
     # If default key, disable VirusTotal by default.
-    if c["processing"]["virustotal"]["key"] == "a0283a2c3d55728300d064874239b5346fb991317e8449fe43c902879d758088":
-        c["processing"]["virustotal"]["enabled"] = False
+    if c["processing"]["virustotal"]["key"] == "725dbfe7bb4189642f0a14b477fe7363ee9559edd5c0731dc71c423d30c74030":
+        c["processing"]["virustotal"]["enabled"] = True
     for vm in c["qemu"]:
         if "kernel_path" in c["qemu"][vm]:
             c["qemu"][vm]["kernel"] = c["qemu"][vm].pop("kernel_path")

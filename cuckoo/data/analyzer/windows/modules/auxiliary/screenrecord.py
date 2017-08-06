@@ -15,7 +15,8 @@ class ScreenRecorder(threading.Thread, Auxiliary):
     def __init__(self, options={}, analyzer=None):
         threading.Thread.__init__(self)
         Auxiliary.__init__(self, options, analyzer)
-        self.src = ScreenRecord(os.environ["TEMP"], "test.mp4")
+        self.file_name = "test.mp4"
+        self.src = ScreenRecord(os.environ["TEMP"], self.file_name)
 
     def stop(self):
         """Stop screenrecording"""
@@ -23,11 +24,14 @@ class ScreenRecorder(threading.Thread, Auxiliary):
         self.src.stop()
 
         # TODO: taking video based on events
-        with open(self.src.output, "rb") as f:
-            nf = NetlogFile()
-            nf.init("video/" + self.src.filename)
-            nf.sock.sendall(f.read())
-            nf.close()
+        try:
+            with open(self.src.output, "rb") as f:
+                nf = NetlogFile()
+                nf.init("screenrecord/%s" % self.src.filename)
+                nf.sock.sendall(f.read())
+                nf.close()
+        except Exception as e:
+            log.debug("Screenrecord bug: %s", e);
 
     def start(self):
         """Run screenrecording"""

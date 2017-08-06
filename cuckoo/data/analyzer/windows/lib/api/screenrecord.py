@@ -58,4 +58,4 @@ class ScreenRecord:
         args += self.vcodecs["h264"]
         args += [self.output]
 
-        subprocess.Popen(args)
+        self.proc = subprocess.Popen(args, shell=False)

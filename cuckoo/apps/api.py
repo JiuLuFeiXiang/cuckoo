@@ -381,6 +381,23 @@ def tasks_report(task_id, report_format="json"):
     else:
         return open(report_path, "rb").read()
 
+@app.route("/tasks/screenrecord/<int:task_id>")
+@app.route("/v1/tasks/screenrecord/<int:task_id>")
+def task_record(task_id=0):
+    folder_path = cwd("storage", "analyses", "%s" % task_id, "screenrecord")
+
+    if not os.path.exists(folder_path):
+        return json_error(404, "Task not found")
+
+    file_name = "test.mp4"
+    screenrecord_path = os.path.join(folder_path, file_name)
+    if not os.path.exists(screenrecord_path):
+        return json_error(404, "Screenrecord not found!")
+
+    response = make_response(open(screenrecord_path, "rb").read())
+    response.headers["Content-Type"] = "video/mp4"
+    return response
+
 @app.route("/tasks/screenshots/<int:task_id>")
 @app.route("/v1/tasks/screenshots/<int:task_id>")
 @app.route("/tasks/screenshots/<int:task_id>/<screenshot>")
@@ -392,15 +409,6 @@ def task_screenshots(task_id=0, screenshot=None):
         return json_error(404, "Task not found")
 
     if screenshot:
-        if screenshot == "video":
-            video_path  = os.path.join(folder_path, "test.avi")
-            if not os.path.exists(video_path):
-                return json_error(404, "Video not found!")
-
-            response = make_response(open(video_path, "rb").read())
-            response.headers["Content-Type"] = "video/x-msvideo"
-            return response
-        else:    
             screenshot_name = "%s.jpg" % screenshot
             screenshot_path = os.path.join(folder_path, screenshot_name)
             if not os.path.exists(screenshot_path):
