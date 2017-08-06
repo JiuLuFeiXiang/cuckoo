@@ -12,6 +12,19 @@ from cuckoo.common.exceptions import CuckooCriticalError
 
 log = logging.getLogger(__name__)
 
+def retry(num_tries, exceptions):
+    def decorator(func):
+        def f_retry(*args, **kwargs):
+            for i in xrange(num_tries):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    continue
+        return f_retry
+    return decorator
+
+retry_auto_reconnect = retry(3, (pymongo.errors.AutoReconnect,))
+
 class Mongo(object):
     def __init__(self):
         self.client = None
@@ -40,6 +53,7 @@ class Mongo(object):
     def close(self):
         self.client.close()
 
+    @retry_auto_reconnect
     def connect(self):
         if not self.enabled:
             return
