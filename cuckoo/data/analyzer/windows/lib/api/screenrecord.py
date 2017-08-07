@@ -1,11 +1,14 @@
 import Tkinter as tkinter
 import subprocess
 import logging
+import os
 
 log = logging.getLogger(__name__)
 
+# ffmpeg is currently our solid choice to record screen, ..
+# others not suitable for us, like working only on Linux http://www.blendernation.com/ or too advanced for just recording screen - Opencv http://docs.opencv.org/master/d6/d00/tutorial_py_root.html,   
 class ScreenRecord:
-    def __init__(self, output_path, filename):
+    def __init__(self, path, fname):
         self.vcodecs = {}
         self.vcodecs["h264_lossless"] = ["-c:v", "libx264", "-g", "15", "-crf", "0", "-pix_fmt", "yuv444p"]
         self.vcodecs["h264"] = ["-c:v", "libx264", "-vprofile", "baseline", "-g", "15", "-crf", "1", "-pix_fmt", "yuv420p"]
@@ -17,9 +20,9 @@ class ScreenRecord:
         self.vcodecs["theora"] = ["-c:v", "libtheora", "-g", "15", "-b:v", "40000k"]
         #self.vcodecs["dirac"] = ["-c:v", "libschroedinger", "-g", "15", "-b:v", "40000k"]
 
-        self.filename = filename
-        self.output_path = output_path
-        self.output = self.output_path + "\\" + self.filename
+        self.fname = fname
+        self.path = path
+        self.file = self.path + "\\" + self.fname
 
         self.proc = None
 
@@ -30,32 +33,59 @@ class ScreenRecord:
         root.destroy()
         return (width, height)
 
+    def is_exe(self, fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    def is_binary_exist(self, program):
+        fpath, fname = os.path.split(program)
+        if fpath:
+            if self.is_exe(program):
+                return program
+        else:
+            for path in os.environ["PATH"].split(os.pathsep):
+                path = path.strip('"')
+                exe_file = os.path.join(path, program)
+                if self.is_exe(exe_file):
+                    return exe_file
+        
+        return None
+
     def stop(self):
-        try:
-            self.proc.kill()
+        log.debug(str(self.proc))
+        self.proc.communicate(input='q')
+        binary_to_check = 'ffmpeg'
+        binary_existence = str(self.is_binary_exist(binary_to_check))
+        
+        try:       
+            if not binary_existence:
+                log.debug('%s does not exist', binary_to_check)
+            elif not self.proc:
+                log.debug('ffmpeg could not be started')
+            else:
+                log.debug("%s exists at ... %s", binary_to_check, binary_existence)
+                self.proc.stdin.write('q')
         except OSError as e:
             log.debug("Error stop recording screen: %s", e)
         except Exception as e:
-            log.exception("Unable to stop recording screen with pid %d: %s",
+            log.debug("Unable to stop recording screen with pid %d: %s",
                               self.proc.pid, e)
     
     def record(self):
-        resl = self.get_desktop_resolution()
-        width = resl[0]
-        height = resl[1]
+        rsl = self.get_desktop_resolution()
+        width = rsl[0]
+        height = rsl[1]
 
         args =  [
-            'ffmpeg',
+            'ffmpeg', '-y',
             '-f', 'gdigrab',
             '-framerate', str(15),
             '-offset_x', str(0),
             '-offset_y', str(0),
             '-video_size', "%dx%d" %(width, height),
             '-i', 'desktop',
-       
         ]
 
         args += self.vcodecs["h264"]
-        args += [self.output]
+        args += [self.file]
 
-        self.proc = subprocess.Popen(args, shell=False)
+        self.proc = subprocess.Popen(args, shell=True, stdin=subprocess.PIPE)

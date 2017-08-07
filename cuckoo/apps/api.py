@@ -22,6 +22,8 @@ from cuckoo.core.rooter import rooter
 from cuckoo.core.submit import SubmitManager
 from cuckoo.misc import cwd, version, decide_cwd
 
+from cuckoo.common.pcapstream import pcapstream
+
 db = Database()
 sm = SubmitManager()
 
@@ -651,6 +653,17 @@ def exit_api():
         )
     else:
         return jsonify(message="Server stopped")
+
+@app.route("/tasks/<int:task_id>/pcapstream/<proto>/<src>/<sport>/<dst>/<dport>")
+def pcapstream(task_id, proto, src, sport, dst, dport):
+    task = db.view_task(task_id)
+    if not task:
+        return json_error(404, "Task not found")
+
+    if task.status == TASK_REPORTED:
+        return jsonify(pcapstream(str(request.url), task_id, proto, src, sport, dst, dport))
+    else:
+        return json_error(403, "Task currently being processed, come back later")
 
 def cuckoo_api(hostname, port, debug):
     app.run(host=hostname, port=port, debug=debug)

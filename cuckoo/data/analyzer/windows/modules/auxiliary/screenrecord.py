@@ -1,6 +1,5 @@
 import logging
 import threading
-import time
 import os
 
 from lib.api.screenrecord import ScreenRecord
@@ -25,9 +24,9 @@ class ScreenRecorder(threading.Thread, Auxiliary):
 
         # TODO: taking video based on events
         try:
-            with open(self.src.output, "rb") as f:
+            with open(self.src.file, "rb") as f:
                 nf = NetlogFile()
-                nf.init("screenrecord/%s" % self.src.filename)
+                nf.init("screenrecord/%s" % self.src.fname)
                 nf.sock.sendall(f.read())
                 nf.close()
         except Exception as e:
