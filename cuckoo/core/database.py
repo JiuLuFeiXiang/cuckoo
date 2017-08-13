@@ -978,7 +978,7 @@ class Database(object):
     def add(self, obj, timeout=0, package="", options="", priority=1,
             custom="", owner="", machine="", platform="", tags=None,
             memory=False, enforce_timeout=False, clock=None, category=None,
-            submit_id=None):
+            submit_id=None, user_id=""):
         """Add a task to database.
         @param obj: object to add (File or URL).
         @param timeout: selected timeout.
@@ -1049,6 +1049,7 @@ class Database(object):
         task.memory = memory
         task.enforce_timeout = enforce_timeout
         task.submit_id = submit_id
+        task.user_id = user_id
 
         if tags:
             if isinstance(tags, basestring):
@@ -1091,16 +1092,20 @@ class Database(object):
             "category": None,
             "task_id": task_id,
             "status": "pending",
+            "user_id": task.user_id
         }
 
         if isinstance(obj, File):
             log.debug("DEBUG obj")
             log.debug(obj)
             mongo_init["category"] = "file"
-
-            file_name = os.path.split(obj.file_path)[1]
-            file_id = ''.join(file_name.split('.')[:-1])
-
+            file_name = os.path.split(obj.file_path)[-1]
+            
+            if '.' in file_name:
+                file_id = ''.join(file_name.split('.')[:-1])
+            else:
+                file_id = file_name
+            
             mongo_init["file"] = {
                 "md5": obj.get_md5(),
                 "crc32": obj.get_crc32(),
@@ -1125,7 +1130,7 @@ class Database(object):
     def add_path(self, file_path, timeout=0, package="", options="",
                  priority=1, custom="", owner="", machine="", platform="",
                  tags=None, memory=False, enforce_timeout=False, clock=None,
-                 submit_id=None):
+                 submit_id=None, user_id=""):
         """Add a task to database from file path.
         @param file_path: sample path.
         @param timeout: selected timeout.
@@ -1153,7 +1158,7 @@ class Database(object):
 
         return self.add(File(file_path), timeout, package, options, priority,
                         custom, owner, machine, platform, tags, memory,
-                        enforce_timeout, clock, "file", submit_id)
+                        enforce_timeout, clock, "file", submit_id, user_id)
 
     def add_archive(self, file_path, filename, package, timeout=0,
                     options=None, priority=1, custom="", owner="", machine="",

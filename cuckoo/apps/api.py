@@ -71,6 +71,8 @@ def tasks_create_file():
     custom = request.form.get("custom", "")
     owner = request.form.get("owner", "")
     clock = request.form.get("clock", None)
+    user_id = request.form.get("user_id", "");
+
 
     memory = parse_bool(request.form.get("memory", 0))
     unique = parse_bool(request.form.get("unique", 0))
@@ -95,7 +97,8 @@ def tasks_create_file():
         owner=owner,
         memory=memory,
         enforce_timeout=enforce_timeout,
-        clock=clock
+        clock=clock,
+        user_id=user_id,
     )
 
     return jsonify(task_id=task_id)
