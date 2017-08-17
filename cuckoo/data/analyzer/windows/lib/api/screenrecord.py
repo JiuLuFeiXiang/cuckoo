@@ -51,24 +51,22 @@ class ScreenRecord:
         return None
 
     def stop(self):
-        log.debug(str(self.proc))
-        self.proc.communicate(input='q')
-        binary_to_check = 'ffmpeg'
+        binary_to_check = 'ffmpeg.exe'
         binary_existence = str(self.is_binary_exist(binary_to_check))
         
         try:       
             if not binary_existence:
                 log.debug('%s does not exist', binary_to_check)
             elif not self.proc:
-                log.debug('ffmpeg could not be started')
+                log.debug('%s could not be started', binary_to_check)
             else:
                 log.debug("%s exists at ... %s", binary_to_check, binary_existence)
-                self.proc.stdin.write('q')
+                stdout_data = self.proc.communicate("q\n")[0]
         except OSError as e:
             log.debug("Error stop recording screen: %s", e)
         except Exception as e:
-            log.debug("Unable to stop recording screen with pid %d: %s",
-                              self.proc.pid, e)
+            log.debug("Unable to stop recording screen with pid %d: exception=%s and stdout=%s",
+                              self.proc.pid, e, stdout_data)
     
     def record(self):
         rsl = self.get_desktop_resolution()
@@ -76,16 +74,16 @@ class ScreenRecord:
         height = rsl[1]
 
         args =  [
-            'ffmpeg', '-y',
+            'ffmpeg.exe', '-y',
             '-f', 'gdigrab',
             '-framerate', str(15),
-            '-offset_x', str(0),
-            '-offset_y', str(0),
-            '-video_size', "%dx%d" %(width, height),
+            # '-offset_x', str(0),
+            # '-offset_y', str(0),
+            # '-video_size', "%dx%d" %(width, height),
             '-i', 'desktop',
         ]
 
-        args += self.vcodecs["h264"]
+        #args += self.vcodecs["h264"]
         args += [self.file]
 
-        self.proc = subprocess.Popen(args, shell=True, stdin=subprocess.PIPE)
+        self.proc = subprocess.Popen(args, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, bufsize=4096)
