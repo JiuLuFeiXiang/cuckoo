@@ -36,6 +36,7 @@ from cuckoo.core.startup import (
 from cuckoo.misc import (
     cwd, load_signatures, getuser, decide_cwd, drop_privileges, is_windows
 )
+from cuckoo.core.machine_info import Machine_info_main
 
 log = logging.getLogger("cuckoo")
 
@@ -591,6 +592,11 @@ def migrate(revision):
         exit(1)
 
     print yellow(">>> Your database migration was successful!")
+
+@main.command()
+def machine_info():
+    """Save information of Cuckoo Host to MongoDB"""
+    Machine_info_main()
 
 @main.command("import")
 @click.option("--copy", "mode", flag_value="copy", default=True, help="Copy all existing analyses to the new CWD (default)")

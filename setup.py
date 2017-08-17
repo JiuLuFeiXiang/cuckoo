@@ -190,7 +190,8 @@ do_setup(
         "unicorn==1.0.1",
         "wakeonlan==0.2.2",
         "yara-python==3.6.3",
-		"m2crypto==0.24.0",
+        "m2crypto==0.24.0",
+        "psutil==5.2.2",
     ],
     extras_require={
         ":sys_platform == 'win32'": [
